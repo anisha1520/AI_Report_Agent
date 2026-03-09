@@ -11,12 +11,12 @@ class ReportDraftingAgent:
         self.output_dir = output_dir
 
     def load_data(self):
-        """Loads validated operational metrics from JSON[cite: 4, 23]."""
+        """Loads validated operational metrics from JSON."""
         with open(self.data_path, 'r') as f:
             return json.load(f)
 
     def process_metrics(self, data):
-        """Maps internal data fields and aggregates values[cite: 8, 9, 14]."""
+        """Maps internal data fields and aggregates values."""
         metrics_list = data.get('metrics', [])
         processed_summary = []
         scores = []
@@ -44,7 +44,7 @@ class ReportDraftingAgent:
         return processed_summary, round(overall_score, 2)
 
     def generate(self):
-        """Generates the structured regulatory report[cite: 10, 15, 28]."""
+        """Generates the structured regulatory report."""
         raw_data = self.load_data()
         
         summary, score = self.process_metrics(raw_data)
