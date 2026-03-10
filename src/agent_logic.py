@@ -1,83 +1,59 @@
-import json
-import pandas as pd
-from jinja2 import Template
-from datetime import datetime
 import os
+import json  # <--- Make sure this line is here!
+from dotenv import load_dotenv
+import google.generativeai as genai
+
+# Load the secret key from the .env file
+load_dotenv()
+API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not API_KEY:
+    print("Error: API Key not found. Please check your .env file.")
+else:
+    genai.configure(api_key=API_KEY)
 
 class ReportDraftingAgent:
-    def __init__(self, data_path, template_path, output_dir):
+    def __init__(self, data_path):
         self.data_path = data_path
-        self.template_path = template_path
-        self.output_dir = output_dir
+        self.model = genai.GenerativeModel('gemini-3-flash-preview')
 
-    def process_metrics(self):
-        """Maps internal data and calculates aggregated values with trend logic."""
-        # Load validated operational metrics from JSON
-        with open(self.data_path, 'r') as f:
-            data = json.load(f)
-        
-        processed_summary = []
-        scores = []
+    def load_metrics(self):
+        """Resiliently handle data ingestion [cite: 42, 43]"""
+        try:
+            with open(self.data_path, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {"error": "Data source not found."}
 
-        for m in data.get('metrics', []):
-            val = m.get('value', 0)
-            threshold = m.get('threshold', 0)
-            
-            # Logic: Lower is better for Latency/Bias, Higher is better for others
-            if m.get('name') in ["Model Bias Variance", "Request Latency"]:
-                is_passed = val <= threshold
-                # For "Lower is Better" metrics, a downward arrow is the positive trend
-                trend = "↓" 
-            else:
-                is_passed = val >= threshold
-                # For "Higher is Better" metrics, an upward arrow is the positive trend
-                trend = "↑"
-            
-            status = "PASS" if is_passed else "FAIL"
-            processed_summary.append({
-                "name": m.get('name'), 
-                "value": val, 
-                "unit": m.get('unit'),
-                "threshold": threshold, 
-                "status": status,
-                "trend": trend
-            })
-            scores.append(100 if is_passed else 0)
-
-        # Calculate Overall Compliance Score
-        overall_score = sum(scores) / len(scores) if scores else 0
-        return data, processed_summary, round(overall_score, 2)
-
-    def generate_report(self):
-        """Renders the final structured regulatory report."""
-        raw_data, summary, score = self.process_metrics()
+    def generate_dynamic_report(self, user_query):
+        """
+        AI Modeling: Instead of a fixed report, this outputs based on 
+        specific user queries.
+        """
+        metrics_data = self.load_metrics()
         
-        with open(self.template_path, 'r') as f:
-            template = Template(f.read())
+        # This prompt maps internal fields to a custom regulatory response [cite: 8, 45]
+        prompt = f"""
+        You are an AI Compliance Specialist. 
+        Context Metrics: {json.dumps(metrics_data)}
         
-        # Mapping internal fields to regulatory template context
-        context = {
-            "system_id": raw_data['report_metadata']['system_id'],
-            "period": raw_data['report_metadata']['assessment_period'],
-            "metrics_summary": summary,
-            "overall_score": score,
-            "status": "COMPLIANT" if score >= 90 else "NON-COMPLIANT",
-            "gen_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
-
-        # Create reports directory if it doesn't exist
-        if not os.path.exists(self.output_dir): os.makedirs(self.output_dir)
-        output_path = os.path.join(self.output_dir, "compliance_report_output.html")
+        Task: Draft a report based on this specific user request: "{user_query}"
         
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(template.render(context))
+        Guidelines:
+        - Provide structured, audit-ready information[cite: 10, 35].
+        - Use tables or bullet points for clarity[cite: 15, 41].
+        - If the request asks for data not present, state it clearly[cite: 21, 43].
+        """
         
-        print(f"✅ Success! Report generated at: {output_path}")
+        response = self.model.generate_content(prompt)
+        return response.text
 
 if __name__ == "__main__":
-    agent = ReportDraftingAgent(
-        data_path='data/operational_metrics.json',
-        template_path='templates/regulatory_template.html',
-        output_dir='reports'
-    )
-    agent.generate_report()
+    agent = ReportDraftingAgent('data/operational_metrics.json')
+    
+    print("--- AI Compliance Agent: Dynamic Query Mode ---")
+    print("Example Queries: 'Summarize risks', 'Check latency vs threshold', 'Draft a high-level memo'")
+    
+    query = input("\nEnter your report query: ")
+    print("\n--- GENERATING CUSTOM REPORT ---\n")
+    print(agent.generate_dynamic_report(query))

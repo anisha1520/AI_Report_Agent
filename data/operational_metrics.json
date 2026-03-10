@@ -1,18 +1,9 @@
 {
-  "report_metadata": {
-    "system_id": "AI-CORE-V2",
-    "assessment_period": "Q1 2026",
-    "organization": "FutureTech Solutions"
-  },
-  "metrics": [
-    {"name": "Data Privacy Check", "value": 98.5, "unit": "percent", "threshold": 95},
-    {"name": "Model Bias Variance", "value": 1.2, "unit": "index", "threshold": 2.0},
-    {"name": "System Uptime", "value": 99.9, "unit": "percent", "threshold": 99.0},
-    {"name": "Request Latency", "value": 120, "unit": "ms", "threshold": 200}
-  ],
-  "incidents": {
-    "total_logged": 4,
-    "resolved": 4,
-    "critical_failures": 0
-  }
+    "timestamp": "2026-03-10",
+    "metrics": [
+        {"name": "Model Accuracy", "value": 0.94, "threshold": 0.90, "type": "quality"},
+        {"name": "Request Latency", "value": 120, "threshold": 200, "type": "latency"},
+        {"name": "Bias Score", "value": 0.02, "threshold": 0.05, "type": "risk"},
+        {"name": "System Uptime", "value": 0.999, "threshold": 0.99, "type": "quality"}
+    ]
 }
