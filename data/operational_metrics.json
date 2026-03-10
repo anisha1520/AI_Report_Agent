@@ -1,9 +1,0 @@
-{
-    "timestamp": "2026-03-10",
-    "metrics": [
-        {"name": "Model Accuracy", "value": 0.94, "threshold": 0.90, "type": "quality"},
-        {"name": "Request Latency", "value": 120, "threshold": 200, "type": "latency"},
-        {"name": "Bias Score", "value": 0.02, "threshold": 0.05, "type": "risk"},
-        {"name": "System Uptime", "value": 0.999, "threshold": 0.99, "type": "quality"}
-    ]
-}

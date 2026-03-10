@@ -1,9 +1,8 @@
 import os
-import json  # <--- Make sure this line is here!
+import json  
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-# Load the secret key from the .env file
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
 
@@ -32,7 +31,6 @@ class ReportDraftingAgent:
         """
         metrics_data = self.load_metrics()
         
-        # This prompt maps internal fields to a custom regulatory response [cite: 8, 45]
         prompt = f"""
         You are an AI Compliance Specialist. 
         Context Metrics: {json.dumps(metrics_data)}
