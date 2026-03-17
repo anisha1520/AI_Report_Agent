@@ -17,6 +17,8 @@ def get_ai_report(query, data_string):
     """
     prompt = f"""
     SYSTEM: You are a Compliance Reporting Agent. 
+    INSTRUCTION: Provide a clean, executive-level report. 
+    STRICT RULE: Do NOT include any citations, references, or text like '' or '[1]'.
     DATA CONTEXT (First 15 rows): {data_string}
     USER REQUEST: {query}
 
@@ -28,18 +30,23 @@ def get_ai_report(query, data_string):
     FORMATTING RULES:
     - Use ONLY Bootstrap 5 HTML classes.
     - DO NOT include markdown blocks (```html).
-    - DO NOT include any citation tags, the word "cite", or .
-    - Return only the inner HTML content.
     """
-    
     try:
         response = model.generate_content(prompt)
         report_html = response.text.replace("```html", "").replace("```", "").strip()
         
-        report_html = re.sub(r'(?i)cite[:\s]*\d*', '', report_html)
-        report_html = re.sub(r'(?i)source[:\s]*\d*', '', report_html)
-        report_html = re.sub(r'\[.*?\]', '', report_html)
+       
+        patterns = [
+            r'\[cite[:\s]*\d+\]', 
+            r'\[\d+\]',           
+            r'\(cite[:\s]*\d+\)',
+            r'cite[:\s]*\d+',     
+            r'【.*?】'            
+        ]
         
+        for pattern in patterns:
+            report_html = re.sub(pattern, '', report_html, flags=re.IGNORECASE)
+            
         return report_html
     except Exception as e:
         return f"<div class='alert alert-warning'>AI Engine Error: {str(e)}</div>"
